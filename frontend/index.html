@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAG Chatbot</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(to right, #eef2f3, #8e9eab);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* HEADER */
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #003f7f;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 2px #ffffff;
+        }
+
+        /* CHAT CONTAINER */
+        #chatbox {
+            flex: 1;
+            width: 60%;
+            max-width: 900px;
+            margin: 10px auto;
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+        }
+
+        /* CHAT BUBBLES */
+        .msg {
+            max-width: 80%;
+            padding: 12px 15px;
+            margin: 12px 0;
+            border-radius: 12px;
+            line-height: 1.4;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .user {
+            background: #daf1ff;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+
+        .bot {
+            background: #e4ffe6;
+            margin-right: auto;
+            border-bottom-left-radius: 0;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(5px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        /* INPUT AREA */
+        #inputArea {
+            width: 60%;
+            max-width: 900px;
+            margin: 10px auto 20px auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        #question {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #bbb;
+            outline: none;
+            font-size: 16px;
+        }
+
+        #question:focus {
+            border-color: #0078ff;
+            box-shadow: 0 0 5px rgba(0,120,255,0.3);
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            background: #0078ff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #005fcc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>RAG Chatbot</h1>   <!-- ⭐ NEW HEADING ADDED -->
+
+    <div id="chatbox"></div>
+
+    <div id="inputArea">
+        <input type="text" id="question" placeholder="Type your question..." 
+               onkeydown="if(event.key==='Enter') sendQuery()" />
+        <button onclick="sendQuery()">Send</button>
+    </div>
+
+    <script>
+        async function sendQuery() {
+            let q = document.getElementById("question").value;
+            if (!q.trim()) return;
+
+            let chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML += `<div class='msg user'>${q}</div>`;
+            document.getElementById("question").value = "";
+            chatbox.scrollTop = chatbox.scrollHeight;
+
+            try {
+                let res = await fetch("http://127.0.0.1:8000/query", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams({ q })
+                });
+
+                let data = await res.json();
+                chatbox.innerHTML += `<div class='msg bot'>${data.answer}</div>`;
+            } catch (err) {
+                chatbox.innerHTML += `<div class='msg bot'>Error connecting to backend</div>`;
+            }
+
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+    </script>
+
+</body>
+</html>
